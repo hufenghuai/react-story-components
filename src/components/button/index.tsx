@@ -1,47 +1,9 @@
-import React, { ButtonHTMLAttributes, PropsWithChildren, ReactNode, AnchorHTMLAttributes, useMemo } from "react";
-import styled from "styled-components";
-import { color, typography } from "../shared/styles";
-import { darken, rgba, opacify } from "polished";
-import { easing} from '../shared/animation'
-
-type btnType = | "primary" | "primaryOutline" | "secondary" | "secondaryOutline" | "tertiary"
-  | "outline"
-  | "inversePrimary"
-  | "inverseSecondary"
-  | "inverseOutline";
-
-// keyof 可以把一个交叉类型变成对应的联合类型
-
-type AppearancesObj = { // 把联合类型 btnType 变成 交叉类型
-  [key in btnType]: btnType;
-}
-
-export const APPEARANCES: AppearancesObj = {
-	primary: "primary",
-	primaryOutline: "primaryOutline",
-	secondary: "secondary",
-	secondaryOutline: "secondaryOutline",
-	tertiary: "tertiary",
-	outline: "outline",
-	inversePrimary: "inversePrimary",
-	inverseSecondary: "inverseSecondary",
-	inverseOutline: "inverseOutline",
-}
-
-export type AppearancesType = keyof typeof APPEARANCES
-
-type sizeType = 'small' | 'medium'
-
-type sizeObj = {
-  [key in sizeType]: sizeType
-}
-
-export const SIZES: sizeObj = {
-  small: 'small',
-  medium: 'medium'
-}
-
-export type SizeTypes = keyof typeof SIZES
+import React, { PropsWithChildren, useMemo } from "react"
+import styled from "styled-components"
+import { APPEARANCES, SIZES, ButtonProps } from "./types"
+import { color, typography } from "../shared/styles"
+import { darken, rgba, opacify } from "polished"
+import { easing } from "../shared/animation"
 
 const Text = styled.span`
   display: inline-block;
@@ -56,26 +18,10 @@ const Loading = styled.span`
   opacity: 0;
 `;
 
-// 对传入的接口定义
-
-export interface CustomButtonProps {
-  /** 是否禁用 */
-  disabled?: boolean
-  /** 是否加载中 */
-  loading?: boolean
-  /** 是否是a标签 */
-  link?: boolean
-  /** 是否替换加载中的文本 */
-  loadingText?: ReactNode
-  /** 按钮大小 */
-  size?: SizeTypes
-  /** 按钮类型 */
-  appearance: AppearancesType
-  /** 无效点击 */
-  unClickable?: boolean
-}
-
-export type ButtonProps = CustomButtonProps & AnchorHTMLAttributes<HTMLAnchorElement> & ButtonHTMLAttributes<HTMLAnchorElement>
+export const btnPadding = {
+  medium: "13px 20px",
+  small: "8px 16px",
+};
 
 
 const StyledButton = styled.button<ButtonProps>`
@@ -105,7 +51,7 @@ const StyledButton = styled.button<ButtonProps>`
   line-height: 1;
 
   ${(props) =>
-		!props.loading &&
+		!props.isLoading &&
 		`
       &:hover {
         transform: translate3d(0, -2px, 0);
@@ -156,7 +102,7 @@ const StyledButton = styled.button<ButtonProps>`
     `}
 
   ${(props) =>
-		props.loading &&
+		props.isLoading &&
 		`
       cursor: progress !important;
       opacity: 0.7;
@@ -185,7 +131,7 @@ const StyledButton = styled.button<ButtonProps>`
       background: ${color.primary};
       color: ${color.lightest};
 
-      ${!props.loading &&
+      ${!props.isLoading &&
 			`
           &:hover {
             background: ${darken(0.05, color.primary)};
@@ -208,7 +154,7 @@ const StyledButton = styled.button<ButtonProps>`
       background: ${color.secondary};
       color: ${color.lightest};
 
-      ${!props.loading &&
+      ${!props.isLoading &&
 			`
           &:hover {
             background: ${darken(0.05, color.secondary)};
@@ -225,13 +171,14 @@ const StyledButton = styled.button<ButtonProps>`
         `}
     `}
 
-  ${(props) =>
-		props.appearance === APPEARANCES.tertiary &&
+  ${(props) => {
+    console.log(color.tertiary)
+		return props.appearance === APPEARANCES.tertiary &&
 		`
       background: ${color.tertiary};
       color: ${color.darkest};
 
-      ${!props.loading &&
+      ${!props.isLoading &&
 			`
           &:hover {
             background: ${darken(0.05, color.tertiary)};
@@ -247,6 +194,7 @@ const StyledButton = styled.button<ButtonProps>`
           }
         `}
     `}
+  }
 
   ${(props) =>
 		props.appearance === APPEARANCES.outline &&
@@ -255,7 +203,7 @@ const StyledButton = styled.button<ButtonProps>`
       color: ${color.dark};
       background: transparent;
 
-      ${!props.loading &&
+      ${!props.isLoading &&
 			`
           &:hover {
             box-shadow: ${opacify(0.3, color.border)} 0 0 0 1px inset;
@@ -348,7 +296,7 @@ const StyledButton = styled.button<ButtonProps>`
           background: ${color.lightest};
           color: ${color.primary};
 
-          ${!props.loading &&
+          ${!props.isLoading &&
 				`
               &:hover {
                 background: ${color.lightest};
@@ -371,7 +319,7 @@ const StyledButton = styled.button<ButtonProps>`
           background: ${color.lightest};
           color: ${color.secondary};
 
-          ${!props.loading &&
+          ${!props.isLoading &&
 				`
               &:hover {
                 background: ${color.lightest};
@@ -419,11 +367,11 @@ const StyledButton = styled.button<ButtonProps>`
 
 // 渲染至页面
 function Button(props: PropsWithChildren<ButtonProps>) {
-	const { loading, loadingText, link, children } = props;
+  const { isLoading, loadingText, link, children } = props;
 	const buttonInner = (
 		<>
 			<Text>{children}</Text>
-			{loading && <Loading>{loadingText || "Loading..."}</Loading>}
+			{isLoading && <Loading>{loadingText || "isLoading..."}</Loading>}
 		</>
 	);
 	const btnType = useMemo(() => {
@@ -433,18 +381,18 @@ function Button(props: PropsWithChildren<ButtonProps>) {
 	}, [link]);
 
 	return (
-		<StyledButton as={btnType} {...props}>
+		<StyledButton as={btnType} {...props} data-testid="button">
 			{buttonInner}
 		</StyledButton>
 	);
 }
 
 Button.defaultProps = {
-	loading: false,
+	isLoading: false,
 	loadingText: null,
 	link: false,
 	appearance: APPEARANCES.tertiary,
-	isDisabled: false,
+	disabled: false,
 	unClickable: false,
 	containsIcon: false,
 	size: SIZES.medium,
